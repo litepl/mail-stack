@@ -1,0 +1,188 @@
+version: "3.8"
+services:
+  clamd:
+    image: "clamd"
+    build:
+      context: clamd
+      dockerfile: Dockerfile
+    deploy:
+      mode: replicated
+      replicas: 1
+    networks:
+      - mail
+    ports:
+      - "5000:5000"
+    volumes:
+      - clamd_db:/var/lib/clamav
+      - amavisd_spool:/var/spool/amavisd
+  amavisd:
+    image: "amavisd"
+    build:
+      context: amavisd
+      dockerfile: Dockerfile
+    deploy:
+      mode: replicated
+      replicas: 1
+    networks:
+      - mail
+    ports:
+      - "10024:10024"
+      - "10026:10026"
+    volumes:
+      - amavisd_config:/etc/amavisd
+      - amavisd_spool:/var/spool/amavisd
+      - amavisd_dkim:/var/db/dkim
+  dovecot:
+    image: "dovecot"
+    build:
+      context: dovecot
+      dockerfile: Dockerfile
+    deploy:
+      mode: replicated
+      replicas: 1
+    secrets:
+      - source: "ssl_bundle_wild_crt_20230731115708"
+        target: "bundle.pem"
+        uid: "0"
+        gid: "0"
+        mode: 0400
+      - source: "ssl_wild_key_20230731115708"
+        target: "private.key"
+        uid: "0"
+        gid: "0"
+        mode: 0400
+      - source: "ssl_wild_ca_crt_20230731115708"
+        target: "ca.pem"
+        uid: "0"
+        gid: "0"
+        mode: 0400
+    networks:
+      - mail
+    ports:
+      - mode: host
+        protocol: tcp
+        published: 4190
+        target: 4190
+      - mode: host
+        protocol: tcp
+        published: 993
+        target: 993
+      - mode: host
+        protocol: tcp
+        published: 995
+        target: 995
+      - mode: host
+        protocol: tcp
+        published: 110
+        target: 110
+      - mode: host
+        protocol: tcp
+        published: 143
+        target: 143
+      - "5001:5001"
+      - "5002:5002"
+    volumes:
+      - dovecot_config:/etc/dovecot
+      - mail:/home/mail
+  postfix:
+    image: "postfix"
+    build:
+      context: postfix
+      dockerfile: Dockerfile
+    deploy:
+      mode: replicated
+      replicas: 1
+    secrets:
+      - source: "ssl_bundle_wild_key_crt_20230731115708"
+        target: "bundle.pem"
+        uid: "0"
+        gid: "0"
+        mode: 0400
+    networks:
+      - mail
+    ports:
+      - mode: host
+        protocol: tcp
+        published: 25
+        target: 25
+      - mode: host
+        protocol: tcp
+        published: 587
+        target: 587
+      - mode: host
+        protocol: tcp
+        published: 588
+        target: 588
+      - mode: host
+        protocol: tcp
+        published: 590
+        target: 590
+      - mode: host
+        protocol: tcp
+        published: 591
+        target: 591
+      - "10025:10025"
+    volumes:
+      - postfix_config:/etc/postfix
+      - postfix_spool:/var/spool/postfix
+      - mail:/home/mail
+volumes:
+  mail:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: nfsvers=4,addr=x.x.x.x,rw
+      device: ":/mailstack/mail"
+  clamd_db:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: nfsvers=4,addr=x.x.x.x,rw
+      device: ":/mailstack/clamd-db"
+  amavisd_config:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: nfsvers=4,addr=x.x.x.x,rw
+      device: ":/mailstack/amavisd-config"
+  amavisd_spool:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: nfsvers=4,addr=x.x.x.x,rw
+      device: ":/mailstack/amavisd-spool"
+  amavisd_dkim:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: nfsvers=4,addr=x.x.x.x,rw
+      device: ":/mailstack/amavisd-dkim"
+  dovecot_config:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: nfsvers=4,addr=x.x.x.x,rw
+      device: ":/mailstack/dovecot-config"
+  postfix_config:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: nfsvers=4,addr=x.x.x.x.x,rw
+      device: ":/mailstack/postfix-config"
+  postfix_spool:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: nfsvers=4,addr=x.x.x.x,rw
+      device: ":/mailstack/postfix-spool"
+networks:
+  mail:
+secrets:
+  ssl_bundle_wild_crt_20230731115708:
+    external: true
+  ssl_wild_key_20230731115708:
+    external: true
+  ssl_wild_ca_crt_20230731115708:
+    external: true
+  ssl_bundle_wild_key_crt_20230731115708:
+    external: true
