@@ -41,17 +41,17 @@ services:
       mode: replicated
       replicas: 1
     secrets:
-      - source: "ssl_bundle_wild_crt_20230731115708"
+      - source: "ssl_bundle_wild_crt"
         target: "bundle.pem"
         uid: "0"
         gid: "0"
         mode: 0400
-      - source: "ssl_wild_key_20230731115708"
+      - source: "ssl_wild_key"
         target: "private.key"
         uid: "0"
         gid: "0"
         mode: 0400
-      - source: "ssl_wild_ca_crt_20230731115708"
+      - source: "ssl_wild_ca_crt"
         target: "ca.pem"
         uid: "0"
         gid: "0"
@@ -93,7 +93,7 @@ services:
       mode: replicated
       replicas: 1
     secrets:
-      - source: "ssl_bundle_wild_key_crt_20230731115708"
+      - source: "ssl_bundle_wild_key_crt"
         target: "bundle.pem"
         uid: "0"
         gid: "0"
@@ -178,11 +178,11 @@ volumes:
 networks:
   mail:
 secrets:
-  ssl_bundle_wild_crt_20230731115708:
+  ssl_bundle_wild_crt:
     external: true
-  ssl_wild_key_20230731115708:
+  ssl_wild_key:
     external: true
-  ssl_wild_ca_crt_20230731115708:
+  ssl_wild_ca_crt:
     external: true
-  ssl_bundle_wild_key_crt_20230731115708:
+  ssl_bundle_wild_key_crt:
     external: true

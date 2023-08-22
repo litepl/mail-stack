@@ -1,0 +1,2 @@
+/(.*) \(unknown \[127\.0\.0\.1\]\)(.*)/ IGNORE
+/X-Virus-Scanned: amavisd-new at example.com.pl/ IGNORE

@@ -1,0 +1,6 @@
+hosts = dbhost
+dbname = mail
+user = mailuser
+password = mailpassword
+
+query = select home from mailusers where name = lower('%u') || '@' || lower('%d')

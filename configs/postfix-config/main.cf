@@ -1,0 +1,116 @@
+compatibility_level = 2
+
+inet_protocols = ipv4
+message_size_limit = 50000000
+
+maillog_file = /dev/stdout
+
+#debug_peer_list = 0.0.0.0/0
+#disable_dns_lookups = yes
+
+#smtpd_sasl_auth_enable = yes
+
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = inet:dovecot:5001
+
+soft_bounce = no
+command_directory = /usr/sbin
+daemon_directory = /usr/libexec/postfix
+default_privs = nobody
+
+myhostname = mail.example.com.pl
+myorigin = $mydomain
+mydestination = $myhostname, localhost
+
+#mynetworks_style = class
+#mynetworks_style = subnet
+#mynetworks_style = host
+
+mynetworks = 127.0.0.0/8, [::1]/128, 192.168.0.0/16, 10.0.0.0/8
+
+local_recipient_maps = $alias_maps $virtual_alias_maps
+
+unknown_local_recipient_reject_code = 550
+
+alias_maps =
+
+home_mailbox = Maildir/
+
+mailbox_transport = lmtp:inet:dovecot:5002
+
+smtpd_banner = mail.example.com.pl
+
+sendmail_path = /usr/sbin/sendmail.postfix
+
+newaliases_path = /usr/bin/newaliases.postfix
+
+mailq_path = /usr/bin/mailq.postfix
+
+setgid_group = postdrop
+
+html_directory = /usr/share/doc/postfix-2.5.6-documentation/html
+
+manpage_directory = /usr/share/man
+
+sample_directory = /usr/share/doc/postfix-2.10.1/samples
+
+readme_directory = /usr/share/doc/postfix-2.10.1/README_FILES
+data_directory = /var/lib/postfix
+
+smtp_tls_note_starttls_offer = yes
+smtp_tls_CAfile = /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt
+smtp_tls_CApath = /etc/pki/ca-trust/extracted/openssl
+smtpd_tls_chain_files = /run/secrets/bundle.pem
+
+smtpd_tls_loglevel = 1
+smtpd_tls_mandatory_protocols = !SSLv2,!SSLv3,!TLSv1
+smtpd_tls_protocols           = !SSLv2,!SSLv3,!TLSv1
+smtpd_tls_received_header = yes
+smtpd_tls_session_cache_timeout = 3600s
+tls_random_source = dev:/dev/urandom
+smtpd_tls_auth_only = yes
+#smtpd_tls_security_level = encrypt
+smtpd_tls_security_level = may
+smtpd_tls_mandatory_ciphers = high
+smtpd_tls_mandatory_exclude_ciphers = aNULL, MD5
+smtp_tls_security_level = may
+smtp_tls_mandatory_protocols  = !SSLv2,!SSLv3,!TLSv1
+smtp_tls_protocols            = !SSLv2,!SSLv3,!TLSv1
+
+smtpd_client_restrictions =
+    check_sender_access regexp:/etc/postfix/sender_access_regex
+    permit_mynetworks
+    permit_inet_interfaces
+    permit_tls_all_clientcerts
+    reject_rbl_client bl.spamcop.net
+
+smtpd_recipient_restrictions =
+    permit_mynetworks
+    permit_inet_interfaces
+
+smtpd_relay_restrictions =
+    permit_mynetworks
+    permit_sasl_authenticated
+    reject_unauth_destination
+
+virtual_mailbox_domains = /etc/postfix/domains.cf
+virtual_mailbox_base = /
+virtual_mailbox_maps = pgsql:/etc/postfix/users.cf
+virtual_minimum_uid = 100
+virtual_uid_maps = static:500
+virtual_gid_maps = static:500
+virtual_alias_maps = hash:/etc/postfix/virtual
+virtual_transport = lmtp:inet:dovecot:5002
+dovecot_destination_recipient_limit = 1
+queue_directory = /var/spool/postfix
+mail_owner = postfix
+
+smtpd_sasl_authenticated_header = yes
+
+sender_bcc_maps = hash:/etc/postfix/sender_bcc
+recipient_bcc_maps = hash:/etc/postfix/recipient_bcc
+
+smtpd_peername_lookup = no
+
+smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
+
